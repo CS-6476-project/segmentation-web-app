@@ -1,0 +1,8 @@
+<!DOCTYPE html>
+<title>Hello from Flask</title>
+{% if image_paths %} {% for image_path, endpoint in image_paths %}
+<img src="{{image_path}}" />
+<p>{{endpoint}}</p>
+{% endfor %} {% else %}
+<h1>Oops! There was an error!</h1>
+{% endif %}
