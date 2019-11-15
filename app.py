@@ -65,7 +65,7 @@ ROOT_DIR = '.'
 STATIC_DIR = os.path.join(ROOT_DIR, 'static')
 
 BASE_URL = 'https://github.com/CS-6476-project/BSDS500/'
-ORIGINAL_URL = BASE_URL + 'raw/master/BSDS500/data/images/test'
+ORIGINAL_URL = 'https://raw.githubusercontent.com/CS-6476-project/BSDS500/master/BSDS500/data/images/test/'
 GROUND_TRUTH_URL = BASE_URL + 'blob/master/BSDS500/data/groundTruth/test/'
 SEGS_URL = BASE_URL + 'blob/master/BSDS500/data/segs'
 
