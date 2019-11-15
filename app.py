@@ -6,6 +6,7 @@ import urllib.request
 import random
 import threading
 import os
+from glob import glob
 
 app = Flask(__name__)
 
@@ -60,61 +61,93 @@ FILE_NAMES = ['103006.mat', '160006.mat', '187058.mat', '140088.mat',
               '334025.mat', '168084.mat', '120003.mat', '326025.mat',
               '141012.mat', '100099.mat', '92014.mat', '238025.mat']
 
-URL = 'https://github.com/CS-6476-project/BSDS500/blob/master/BSDS500/data/segs'
+ROOT_DIR = '.'
+STATIC_DIR = os.path.join(ROOT_DIR, 'static')
 
+BASE_URL = 'https://github.com/CS-6476-project/BSDS500/'
+ORIGINAL_URL = BASE_URL + 'raw/master/BSDS500/data/images/test'
+GROUND_TRUTH_URL = BASE_URL + 'blob/master/BSDS500/data/groundTruth/test/'
+SEGS_URL = BASE_URL + 'blob/master/BSDS500/data/segs'
 
 FEATURE_SPACES = ['hsv', 'hsv_pos', 'rgb', 'rgb_pos']
-ALGOS_WITH_FEATURE_SPACES = ['k_means', 'mean_shift']
-OTHER_ALGOS = ['deep_learning']
-PATHS = ["/".join([x, y]) for x in ALGOS_WITH_FEATURE_SPACES for y in FEATURE_SPACES] + OTHER_ALGOS
-
-URLS = ["/".join([URL, x]) for x in PATHS]
+FEATURE_SPACE_NAMES = ['HSV', 'HSV + Position', 'RGB', 'RGB + Position']
 
 
-def callback(endpoint, index, image_paths):
-  file_name = '%d.mat' % index
-  image_name = 'static/%d.png' % index
+class Algo():
+  def __init__(self, url, withFeatureSpace=False):
+    self.name = url.replace('_', ' ').title()
+    if (withFeatureSpace):
+      self.paths = ["%s/%s" % (url, x) for x in FEATURE_SPACES]
+      self.path_names = ["%s, %s space" % (self.name, x) for x in FEATURE_SPACE_NAMES]
+    else:
+      self.paths = ["%s" % url]
+      self.path_names = ["%s approach" % self.name]
 
-  urllib.request.urlretrieve(endpoint, file_name)
-  mat = loadmat(file_name)
+
+ALGOS = [Algo('k_means', True), Algo('mean_shift', True), Algo('deep_learning')]
+
+
+def getGroundTruth(ground_truth_url, chosen_file_name, template_data):
+  file_path = os.path.join(ROOT_DIR, 'ground_truth.mat')
+  image_path = os.path.join(STATIC_DIR, '%s_ground_truth.png' % chosen_file_name)
+
+  urllib.request.urlretrieve(ground_truth_url, file_path)
+  mat = loadmat(file_path)
+  ground_truth_data = mat['groundTruth']
+  to_pick = np.random.randint(ground_truth_data.shape[1])
+  ground_truth_data = ground_truth_data[0, to_pick][0, 0]
+  ground_truth_data = np.uint8(ground_truth_data[0])
+  plt.imsave(image_path, ground_truth_data)
+
+  template_data.append([image_path, 'Ground Truth Segmentation'])
+
+
+def callback(endpoint, chosen_file_name, template_data):
+  file_path = os.path.join(ROOT_DIR, '%s.mat' % endpoint[1])
+  image_path = os.path.join(STATIC_DIR, '%s_%s.png' % (chosen_file_name, endpoint[1]))
+
+  urllib.request.urlretrieve(endpoint[0], file_path)
+  mat = loadmat(file_path)
   segs = np.uint8(mat['segs'][0, 0])
-  plt.imsave(image_name, segs)
+  plt.imsave(image_path, segs)
 
-  image_paths.append([image_name, endpoint])
+  template_data.append([image_path, endpoint[1]])
 
 
 @app.route('/')
 def main():
   chosen_file = random.choice(FILE_NAMES)
-  endpoints = ["%s/%s?raw=true" % (x, chosen_file) for x in URLS]
 
-  if not os.path.exists('static'):
-    os.makedirs('static')
+  endpoints = []
+  for algo in ALGOS:
+    for path, path_name in zip(algo.paths, algo.path_names):
+      full_path = "%s/%s/%s?raw=true" % (SEGS_URL, path, chosen_file)
+      endpoints.append((full_path, path_name))
 
-  image_paths = []
+  if not os.path.exists(STATIC_DIR):
+    os.makedirs(STATIC_DIR)
+  else:
+    for file in glob(os.path.join(STATIC_DIR, "*.png")):
+      os.remove(file)
 
-  threads = [threading.Thread(target=callback, args=(endpoint, index, image_paths)) for index, endpoint in enumerate(endpoints)]
+  chosen_file_name = chosen_file.split('.')[0]
+  ground_truth = "%s/%s?raw=true" % (GROUND_TRUTH_URL, chosen_file)
+  template_data = []
+
+  threads = [threading.Thread(target=callback, args=(endpoint, chosen_file_name, template_data)) for endpoint in endpoints] + [threading.Thread(target=getGroundTruth, args=(ground_truth, chosen_file_name, template_data))]
 
   for thread in threads:
     thread.start()
 
   for thread in threads:
     thread.join()
-  # pool = ThreadPool(8)
-  # results = pool.map(callback, endpoints)
 
-  # for index, endpoint in enumerate(endpoints):
-  #   file_name = '%d.mat' % index
-  #   image_name = 'static/%d.png' % index
+  template_data.sort(key=lambda x: x[1])
 
-  #   urllib.request.urlretrieve(endpoint, file_name)
-  #   mat = loadmat(file_name)
-  #   segs = np.uint8(mat['segs'][0, 0])
-  #   plt.imsave(image_name, segs)
+  original = '%s/%s.jpg' % (ORIGINAL_URL, chosen_file_name)
+  template_data.insert(0, [original, "Original Image"])
 
-  #   image_paths.append(image_name)
-
-  return render_template('main.html', image_paths=image_paths)
+  return render_template('main.html', template_data=template_data, image_number=chosen_file_name)
 
 
 if __name__ == '__main__':

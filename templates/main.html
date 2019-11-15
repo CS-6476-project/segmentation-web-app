@@ -1,8 +1,22 @@
 <!DOCTYPE html>
-<title>Hello from Flask</title>
-{% if image_paths %} {% for image_path, endpoint in image_paths %}
-<img src="{{image_path}}" />
-<p>{{endpoint}}</p>
-{% endfor %} {% else %}
+<head>
+  <title>Team SegFault | CS 6476 Project Web-app, Fall 2019</title>
+  <link rel="stylesheet" href="static/main.css" />
+</head>
+{% if image_number and template_data %}
+
+<div id="parentContainer">
+  <h1 class="heading">Output for image #{{image_number}}</h1>
+  <div id="container">
+    {% for image_path, image_description in template_data %}
+    <div class="imageContainer">
+      <img src="{{image_path}}" class="image" />
+      <p>{{image_description}}</p>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+{% else %}
 <h1>Oops! There was an error!</h1>
 {% endif %}
