@@ -154,7 +154,7 @@ def main():
   template_data.sort(key=lambda x: x[1])
 
   original = '%s/%s.jpg' % (ORIGINAL_URL, chosen_file_name)
-  template_data.insert(0, [original, "Original Image"])
+  template_data.insert(0, [original, "Original image"])
 
   return render_template('main.html', template_data=template_data, image_number=chosen_file_name, invalid_query=invalid_query)
 

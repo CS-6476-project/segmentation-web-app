@@ -7,7 +7,6 @@
 #container {
   padding: 0 32px;
   display: flex;
-  flex-direction: row;
   flex-wrap: wrap;
   justify-content: center;
 }
@@ -23,8 +22,4 @@
   align-items: center;
   margin-bottom: 20px;
   margin-right: 12px;
-}
-
-.heading {
-
 }
