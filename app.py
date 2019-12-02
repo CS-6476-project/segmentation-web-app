@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from scipy.io import loadmat
 import numpy as np
 import matplotlib.pyplot as plt
@@ -116,7 +116,16 @@ def callback(endpoint, chosen_file_name, template_data):
 
 @app.route('/')
 def main():
+
+  query = request.args.get('q')
+  invalid_query = False
   chosen_file = random.choice(FILE_NAMES)
+
+  if query:
+    if f'{query}.mat' in FILE_NAMES:
+      chosen_file = f'{query}.mat'
+    else:
+      invalid_query = True
 
   endpoints = []
   for algo in ALGOS:
@@ -147,7 +156,7 @@ def main():
   original = '%s/%s.jpg' % (ORIGINAL_URL, chosen_file_name)
   template_data.insert(0, [original, "Original Image"])
 
-  return render_template('main.html', template_data=template_data, image_number=chosen_file_name)
+  return render_template('main.html', template_data=template_data, image_number=chosen_file_name, invalid_query=invalid_query)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,12 @@
 <head>
   <title>Team SegFault | CS 6476 Project Web-app, Fall 2019</title>
   <link rel="stylesheet" href="static/main.css" />
+  <script>
+    "{{ invalid_query }}" === "True" &&
+      window.alert(
+        "Query image does not exist! Will show outputs for a random image instead."
+      );
+  </script>
 </head>
 {% if image_number and template_data %}
 
