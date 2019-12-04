@@ -14,10 +14,12 @@
 <div id="parentContainer">
   <h1>Output for image #{{image_number}}</h1>
   <div id="container">
-    {% for image_path, image_description in template_data %}
+    {% for image_path, image_description, num_segs in template_data %}
     <div class="imageContainer">
       <img src="{{image_path}}" class="image" />
-      <p>{{image_description}}</p>
+      <p>
+        {{image_description}}{{ ", segs={}".format(num_segs) if num_segs }}
+      </p>
     </div>
     {% endfor %}
   </div>

@@ -70,7 +70,7 @@ GROUND_TRUTH_URL = BASE_URL + 'blob/master/BSDS500/data/groundTruth/test/'
 SEGS_URL = BASE_URL + 'blob/master/BSDS500/data/segs'
 
 FEATURE_SPACES = ['hsv', 'hsv_pos', 'rgb', 'rgb_pos']
-FEATURE_SPACE_NAMES = ['HSV', 'HSV + Position', 'RGB', 'RGB + Position']
+FEATURE_SPACE_NAMES = ['HSV', 'HSV + Pos', 'RGB', 'RGB + Pos']
 
 
 class Algo():
@@ -97,9 +97,10 @@ def getGroundTruth(ground_truth_url, chosen_file_name, template_data):
   to_pick = np.random.randint(ground_truth_data.shape[1])
   ground_truth_data = ground_truth_data[0, to_pick][0, 0]
   ground_truth_data = np.uint8(ground_truth_data[0])
+  num_segs = np.unique(ground_truth_data).size
   plt.imsave(image_path, ground_truth_data)
 
-  template_data.append([image_path, 'Ground Truth Segmentation'])
+  template_data.append([image_path, 'Ground Truth Segmentation', num_segs])
 
 
 def callback(endpoint, chosen_file_name, template_data):
@@ -109,9 +110,10 @@ def callback(endpoint, chosen_file_name, template_data):
   urllib.request.urlretrieve(endpoint[0], file_path)
   mat = loadmat(file_path)
   segs = np.uint8(mat['segs'][0, 0])
+  num_segs = np.unique(segs).size
   plt.imsave(image_path, segs)
 
-  template_data.append([image_path, endpoint[1]])
+  template_data.append([image_path, endpoint[1], num_segs])
 
 
 @app.route('/')
@@ -154,7 +156,7 @@ def main():
   template_data.sort(key=lambda x: x[1])
 
   original = '%s/%s.jpg' % (ORIGINAL_URL, chosen_file_name)
-  template_data.insert(0, [original, "Original image"])
+  template_data.insert(0, [original, "Original image", None])
 
   return render_template('main.html', template_data=template_data, image_number=chosen_file_name, invalid_query=invalid_query)
 
