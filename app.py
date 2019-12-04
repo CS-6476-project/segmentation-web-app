@@ -89,18 +89,20 @@ ALGOS = [Algo('k_means', True), Algo('mean_shift', True), Algo('normalized_cut',
 
 def getGroundTruth(ground_truth_url, chosen_file_name, template_data):
   file_path = os.path.join(ROOT_DIR, 'ground_truth.mat')
-  image_path = os.path.join(STATIC_DIR, '%s_ground_truth.png' % chosen_file_name)
 
   urllib.request.urlretrieve(ground_truth_url, file_path)
   mat = loadmat(file_path)
   ground_truth_data = mat['groundTruth']
   to_pick = np.random.randint(ground_truth_data.shape[1])
+
+  image_path = os.path.join(STATIC_DIR, '%s_ground_truth%d.png' % (chosen_file_name, to_pick))
+
   ground_truth_data = ground_truth_data[0, to_pick][0, 0]
   ground_truth_data = np.uint8(ground_truth_data[0])
   num_segs = np.unique(ground_truth_data).size
   plt.imsave(image_path, ground_truth_data)
 
-  template_data.append([image_path, 'Ground Truth Segmentation', num_segs])
+  template_data.append([image_path, 'Ground Truth Segmentation #%d' % (to_pick + 1), num_segs])
 
 
 def callback(endpoint, chosen_file_name, template_data):
