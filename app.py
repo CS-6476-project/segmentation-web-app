@@ -84,7 +84,7 @@ class Algo():
       self.path_names = ["%s approach" % self.name]
 
 
-ALGOS = [Algo('k_means', True), Algo('mean_shift', True), Algo('deep_learning')]
+ALGOS = [Algo('k_means', True), Algo('mean_shift', True), Algo('normalized_cut', True), Algo('deep_learning')]
 
 
 def getGroundTruth(ground_truth_url, chosen_file_name, template_data):
